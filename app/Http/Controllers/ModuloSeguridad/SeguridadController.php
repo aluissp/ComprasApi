@@ -13,17 +13,15 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
 
-class SeguridadController extends Controller
-{
+class SeguridadController extends Controller {
     use AuditoriaTrait;
     use UserTrait;
     use TokenTrait;
     use dafaultDataTrait;
-    public function login(Request $request)
-    {
+    public function login(Request $request) {
         try {
             $validator = Validator::make($request->all(), [
-                'usuario' => 'required|string|min:8',
+                'usuario' => 'required|string|min:1',
                 'password' => 'required|string|min:8',
             ]);
 
@@ -71,8 +69,7 @@ class SeguridadController extends Controller
         }
     }
 
-    private function obtenerPermisosUsuarioSeguridad($usuario, $password, $token)
-    {
+    private function obtenerPermisosUsuarioSeguridad($usuario, $password, $token) {
         $permisosUsuario = Http::withToken($token['access_token'])
             ->get('http://20.163.192.189:8080/api/login', [
                 'user_username' => $usuario,
@@ -84,8 +81,7 @@ class SeguridadController extends Controller
 
 
 
-    private function obtenerTokenSeguridad()
-    {
+    private function obtenerTokenSeguridad() {
         $tokenSeguridad = Http::asForm()->post('http://20.163.192.189:8080/token', [
             'username' => '1005009475',
             'password' => 'lhramirezm2023',
@@ -93,16 +89,14 @@ class SeguridadController extends Controller
         return $tokenSeguridad->json();
     }
 
-    private function obtenerUserbyEmail($token, $email)
-    {
+    private function obtenerUserbyEmail($token, $email) {
         $url = "http://20.163.192.189:8080/api/user_email/" . urlencode($email);
         $usuario = Http::withToken($token['access_token'])
             ->get($url);
         return $usuario->json();
     }
 
-    private function esCorreoElectronicoValido($correo)
-    {
+    private function esCorreoElectronicoValido($correo) {
         return filter_var($correo, FILTER_VALIDATE_EMAIL) !== false;
     }
 }
