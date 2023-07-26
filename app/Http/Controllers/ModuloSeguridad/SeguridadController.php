@@ -6,6 +6,7 @@ namespace App\Http\Controllers\ModuloSeguridad;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\AuditoriaTrait;
 use App\Http\Traits\dafaultDataTrait;
+use App\Http\Traits\InventarioTrait;
 use App\Http\Traits\TokenTrait;
 use App\Http\Traits\UserTrait;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class SeguridadController extends Controller {
     use UserTrait;
     use TokenTrait;
     use dafaultDataTrait;
+    use InventarioTrait;
     public function login(Request $request) {
         try {
             $validator = Validator::make($request->all(), [
@@ -28,7 +30,6 @@ class SeguridadController extends Controller {
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 400);
             }
-            $this->userDefaultControl();
 
             $usuario = $request->usuario;
             $password = $request->password;
@@ -53,6 +54,9 @@ class SeguridadController extends Controller {
             #TOKEN PARA MODULO DE COMPRAS
             $tokenCompras = $this->generarToken(['email' => $permisosUsuario['user']['usr_email'], 'password' => $password]);
 
+            #TOKEN PARA INVENTARIO
+            $tokenInventario = $this->obtenerTokenInventario();
+
             #AUDITORIA
             $this->registrarAuditoria($permisosUsuario['user']['usr_email'], "Login", "Compras", "Ingreso al sistema del Modulo Compras", "Nombre usuario: " . $permisosUsuario['user']['usr_full_name']);
 
@@ -62,7 +66,8 @@ class SeguridadController extends Controller {
                 'authorization' => [
                     'token' => $tokenCompras,
                     'type' => 'bearer',
-                ]
+                ],
+                'tokenInventario' => $tokenInventario['token']
             ]);
         } catch (\Throwable $th) {
             return response()->json(['message' => 'Usuario o contraseña incorrectos o módulo de Seguridades sin servicio'], 400);
